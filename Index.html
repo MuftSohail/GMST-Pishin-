@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>School Management App</title>
+    <!-- Tailwind CSS CDN for modern styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start; /* Align to top to allow scrolling */
+            min-height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 1rem; /* rounded-xl */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* shadow-xl */
+            width: 100%;
+            max-width: 900px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        .tab-button {
+            padding: 1rem 1.5rem;
+            font-weight: 600; /* font-semibold */
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: #4a5568; /* text-gray-700 */
+            white-space: nowrap; /* Prevent wrapping */
+        }
+        .tab-button.active {
+            border-color: #3b82f6; /* blue-500 */
+            color: #1a202c; /* text-gray-900 */
+            background-color: #eff6ff; /* blue-50 */
+        }
+        .tab-content {
+            display: none;
+            padding: 1.5rem;
+            flex-grow: 1; /* Allow content to grow */
+            overflow-y: auto; /* Enable scrolling for content */
+        }
+        .tab-content.active {
+            display: block;
+        }
+        input[type="text"],
+        input[type="number"],
+        input[type="date"],
+        select {
+            width: 100%;
+            padding: 0.75rem;
+            border-radius: 0.5rem; /* rounded-lg */
+            border: 1px solid #e2e8f0; /* border-gray-300 */
+            background-color: #f9fafb; /* bg-gray-50 */
+            margin-bottom: 1rem;
+            box-sizing: border-box;
+            font-size: 1rem;
+        }
+        button {
+            padding: 0.75rem 1.25rem;
+            border-radius: 0.5rem; /* rounded-lg */
+            font-weight: 500; /* font-medium */
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); /* shadow-sm */
+        }
+        button.primary {
+            background-color: #3b82f6; /* blue-600 */
+            color: #ffffff;
+        }
+        button.primary:hover {
+            background-color: #2563eb; /* blue-700 */
+        }
+        button.secondary {
+            background-color: #e2e8f0; /* gray-200 */
+            color: #2d3748; /* gray-800 */
+        }
+        button.secondary:hover {
+            background-color: #cbd5e0; /* gray-300 */
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+        th, td {
+            border: 1px solid #e2e8f0; /* border-gray-300 */
+            padding: 0.75rem;
+            text-align: left;
+        }
+        th {
+            background-color: #f7fafc; /* gray-100 */
+            font-weight: 600; /* font-semibold */
+            color: #2d3748; /* gray-800 */
+        }
+        .notification-container {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        .whatsapp-notification {
+            background-color: #e0ffc7; /* WhatsApp-like green-ish */
+            color: #1e2d1d;
+            padding: 0.75rem 1rem;
+            border-radius: 0.75rem; /* rounded-xl */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            max-width: 280px;
+            word-wrap: break-word;
+            animation: slideInRight 0.5s forwards;
+        }
+        .whatsapp-notification.error {
+            background-color: #ffe0e0; /* light red for errors */
+            color: #5d1d1d;
+        }
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        @keyframes slideOutRight {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+        /* Mobile specific adjustments */
+        @media (max-width: 768px) {
+            .tab-buttons {
+                flex-direction: column;
+                border-bottom: none;
+            }
+            .tab-button {
+                border-bottom: 1px solid #e2e8f0;
+                width: 100%;
+                text-align: center;
+            }
+            .container {
+                border-radius: 0.5rem; /* rounded-lg for mobile */
+                box-shadow: none; /* No shadow for mobile */
+            }
+            body {
+                padding: 10px; /* Less padding on mobile */
+            }
+            .notification-container {
+                top: 0.5rem;
+                right: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+
+    <div class="container">
+        <!-- Tabs for navigation -->
+        <div class="flex flex-wrap justify-center border-b border-gray-200 bg-gray-50 rounded-t-xl tab-buttons">
+            <div class="tab-button active" data-tab="student-registration">Student Registration <br/> (طالب علم کا اندراج)</div>
+            <div class="tab-button" data-tab="attendance-system">Attendance System <br/> (حاضری کا نظام)</div>
+            <div class="tab-button" data-tab="fee-submission">Fee Submission <br/> (فیس کی ادائیگی)</div>
+            <div class="tab-button" data-tab="result-section">Result Section <br/> (نتیجہ کا حصہ)</div>
+            <div class="tab-button" data-tab="notification-panel">Notification Panel <br/> (اطلاعاتی پینل)</div>
+        </div>
+
+        <!-- Student Registration Module -->
+        <div id="student-registration" class="tab-content active">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Student Registration (طالب علم کا اندراج)</h2>
+            <form id="student-registration-form" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label for="student-name" class="block text-sm font-medium text-gray-700 mb-1">Name (نام):</label>
+                    <input type="text" id="student-name" placeholder="Student Name" required>
+                </div>
+                <div>
+                    <label for="student-class" class="block text-sm font-medium text-gray-700 mb-1">Class (کلاس):</label>
+                    <input type="text" id="student-class" placeholder="e.g., 10th" required>
+                </div>
+                <div>
+                    <label for="student-section" class="block text-sm font-medium text-gray-700 mb-1">Section (سیکشن):</label>
+                    <input type="text" id="student-section" placeholder="e.g., A" required>
+                </div>
+                <div>
+                    <label for="student-gender" class="block text-sm font-medium text-gray-700 mb-1">Gender (جنس):</label>
+                    <select id="student-gender" required>
+                        <option value="">Select Gender</option>
+                        <option value="Male">Male (مرد)</option>
+                        <option value="Female">Female (عورت)</option>
+                        <option value="Other">Other (دیگر)</option>
+                    </select>
+                </div>
+                <div class="md:col-span-2">
+                    <label for="guardian-contact" class="block text-sm font-medium text-gray-700 mb-1">Guardian Contact (سرپرست کا رابطہ):</label>
+                    <input type="text" id="guardian-contact" placeholder="Guardian Phone Number" required>
+                </div>
+                <div class="md:col-span-2 flex justify-end">
+                    <button type="submit" class="primary">Register Student (طالب علم کو رجسٹر کریں)</button>
+                </div>
+            </form>
+
+            <h3 class="text-xl font-bold text-gray-800 mt-8 mb-4">Registered Students (رجسٹرڈ طلباء)</h3>
+            <div class="overflow-x-auto">
+                <table id="student-list" class="min-w-full">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name (نام)</th>
+                            <th>Class (کلاس)</th>
+                            <th>Section (سیکشن)</th>
+                            <th>Gender (جنس)</th>
+                            <th>Contact (رابطہ)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Students will be listed here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Attendance System Module -->
+        <div id="attendance-system" class="tab-content">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Attendance System (حاضری کا نظام)</h2>
+            <div class="flex flex-col md:flex-row gap-4 mb-4">
+                <div class="flex-grow">
+                    <label for="attendance-date" class="block text-sm font-medium text-gray-700 mb-1">Select Date (تاریخ منتخب کریں):</label>
+                    <input type="date" id="attendance-date" class="w-full">
+                </div>
+                <div class="flex-grow">
+                    <label for="attendance-class-filter" class="block text-sm font-medium text-gray-700 mb-1">Filter by Class (کلاس کے لحاظ سے فلٹر کریں):</label>
+                    <input type="text" id="attendance-class-filter" placeholder="e.g., 10th">
+                </div>
+                <div class="flex-grow">
+                    <label for="attendance-section-filter" class="block text-sm font-medium text-gray-700 mb-1">Filter by Section (سیکشن کے لحاظ سے فلٹر کریں):</label>
+                    <input type="text" id="attendance-section-filter" placeholder="e.g., A">
+                </div>
+            </div>
+            <button id="load-students-for-attendance" class="primary w-full md:w-auto mb-4">Load Students for Attendance (حاضری کے لیے طلباء لوڈ کریں)</button>
+
+            <div class="overflow-x-auto">
+                <table id="attendance-table" class="min-w-full">
+                    <thead>
+                        <tr>
+                            <th>Name (نام)</th>
+                            <th>Class (کلاس)</th>
+                            <th>Section (سیکشن)</th>
+                            <th>Status (حالت)</th>
+                            <th>Action (عمل)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Students for attendance will be listed here -->
+                    </tbody>
+                </table>
+            </div>
+            <button id="save-attendance" class="primary mt-4 w-full md:w-auto">Save Attendance (حاضری محفوظ کریں)</button>
+
+            <h3 class="text-xl font-bold text-gray-800 mt-8 mb-4">Attendance Records (حاضری کے ریکارڈ)</h3>
+            <div class="flex flex-col md:flex-row gap-4 mb-4">
+                <div class="flex-grow">
+                    <label for="attendance-record-date-filter" class="block text-sm font-medium text-gray-700 mb-1">Filter by Date (تاریخ کے لحاظ سے فلٹر کریں):</label>
+                    <input type="date" id="attendance-record-date-filter" class="w-full">
+                </div>
+                <div class="flex-grow">
+                    <label for="attendance-record-class-filter" class="block text-sm font-medium text-gray-700 mb-1">Filter by Class (کلاس کے لحاظ سے فلٹر کریں):</label>
+                    <input type="text" id="attendance-record-class-filter" placeholder="e.g., 10th">
+                </div>
+                <div class="flex-grow">
+                    <label for="attendance-record-section-filter" class="block text-sm font-medium text-gray-700 mb-1">Filter by Section (سیکشن کے لحاظ سے فلٹر کریں):</label>
+                    <input type="text" id="attendance-record-section-filter" placeholder="e.g., A">
+                </div>
+            </div>
+            <button id="show-attendance-records" class="primary w-full md:w-auto mb-4">Show Records (ریکارڈ دکھائیں)</button>
+            <div class="overflow-x-auto">
+                <table id="attendance-records-table" class="min-w-full">
+                    <thead>
+                        <tr>
+                            <th>Date (تاریخ)</th>
+                            <th>Name (نام)</th>
+                            <th>Class (کلاس)</th>
+                            <th>Section (سیکشن)</th>
+                            <th>Status (حالت)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Attendance records will be listed here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Fee Submission Module -->
+        <div id="fee-submission" class="tab-content">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Fee Submission (فیس کی ادائیگی)</h2>
+            <form id="fee-submission-form" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label for="fee-student-id" class="block text-sm font-medium text-gray-700 mb-1">Student Name (طالب علم کا نام):</label>
+                    <select id="fee-student-id" required class="w-full">
+                        <option value="">Select Student</option>
+                        <!-- Options will be populated by JS -->
+                    </select>
+                </div>
+                <div>
+                    <label for="fee-amount" class="block text-sm font-medium text-gray-700 mb-1">Amount (رقم):</label>
+                    <input type="number" id="fee-amount" placeholder="e.g., 5000" required>
+                </div>
+                <div>
+                    <label for="fee-month" class="block text-sm font-medium text-gray-700 mb-1">Month (مہینہ):</label>
+                    <input type="text" id="fee-month" placeholder="e.g., January" required>
+                </div>
+                <div>
+                    <label for="fee-status" class="block text-sm font-medium text-gray-700 mb-1">Status (حالت):</label>
+                    <select id="fee-status" required>
+                        <option value="Paid">Paid (ادا شدہ)</option>
+                        <option value="Pending">Pending (زیر التواء)</option>
+                    </select>
+                </div>
+                <div class="md:col-span-2 flex justify-end">
+                    <button type="submit" class="primary">Submit Fee (فیس جمع کروائیں)</button>
+                </div>
+            </form>
+
+            <h3 class="text-xl font-bold text-gray-800 mt-8 mb-4">Fee Records (فیس کے ریکارڈ)</h3>
+            <div class="flex flex-col md:flex-row gap-4 mb-4">
+                <div class="flex-grow">
+                    <label for="fee-record-student-filter" class="block text-sm font-medium text-gray-700 mb-1">Filter by Student Name (طالب علم کے نام سے فلٹر کریں):</label>
+                    <input type="text" id="fee-record-student-filter" placeholder="Student Name">
+                </div>
+                <div class="flex-grow">
+                    <label for="fee-record-month-filter" class="block text-sm font-medium text-gray-700 mb-1">Filter by Month (مہینہ کے لحاظ سے فلٹر کریں):</label>
+                    <input type="text" id="fee-record-month-filter" placeholder="e.g., January">
+                </div>
+            </div>
+            <button id="show-fee-records" class="primary w-full md:w-auto mb-4">Show Records (ریکارڈ دکھائیں)</button>
+            <div class="overflow-x-auto">
+                <table id="fee-records-table" class="min-w-full">
+                    <thead>
+                        <tr>
+                            <th>Student (طالب علم)</th>
+                            <th>Amount (رقم)</th>
+                            <th>Month (مہینہ)</th>
+                            <th>Status (حالت)</th>
+                            <th>Date (تاریخ)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Fee records will be listed here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Result Section Module -->
+        <div id="result-section" class="tab-content">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Result Section (نتیجہ کا حصہ)</h2>
+            <form id="result-submission-form" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label for="result-student-id" class="block text-sm font-medium text-gray-700 mb-1">Student Name (طالب علم کا نام):</label>
+                    <select id="result-student-id" required class="w-full">
+                        <option value="">Select Student</option>
+                        <!-- Options will be populated by JS -->
+                    </select>
+                </div>
+                <div>
+                    <label for="result-subject1" class="block text-sm font-medium text-gray-700 mb-1">Math (ریاضی) Marks:</label>
+                    <input type="number" id="result-subject1" placeholder="Marks for Math" min="0" max="100" required>
+                </div>
+                <div>
+                    <label for="result-subject2" class="block text-sm font-medium text-gray-700 mb-1">Science (سائنس) Marks:</label>
+                    <input type="number" id="result-subject2" placeholder="Marks for Science" min="0" max="100" required>
+                </div>
+                <div>
+                    <label for="result-subject3" class="block text-sm font-medium text-gray-700 mb-1">Urdu (اردو) Marks:</label>
+                    <input type="number" id="result-subject3" placeholder="Marks for Urdu" min="0" max="100" required>
+                </div>
+                <div class="md:col-span-2 flex justify-end">
+                    <button type="submit" class="primary">Submit Result (نتیجہ جمع کروائیں)</button>
+                </div>
+            </form>
+
+            <h3 class="text-xl font-bold text-gray-800 mt-8 mb-4">Student Results (طلباء کے نتائج)</h3>
+            <div class="flex flex-col md:flex-row gap-4 mb-4">
+                <div class="flex-grow">
+                    <label for="result-record-student-filter" class="block text-sm font-medium text-gray-700 mb-1">Filter by Student Name (طالب علم کے نام سے فلٹر کریں):</label>
+                    <input type="text" id="result-record-student-filter" placeholder="Student Name">
+                </div>
+            </div>
+            <button id="show-result-records" class="primary w-full md:w-auto mb-4">Show Records (ریکارڈ دکھائیں)</button>
+            <div class="overflow-x-auto">
+                <table id="result-records-table" class="min-w-full">
+                    <thead>
+                        <tr>
+                            <th>Student (طالب علم)</th>
+                            <th>Math (ریاضی)</th>
+                            <th>Science (سائنس)</th>
+                            <th>Urdu (اردو)</th>
+                            <th>Total Marks (کل نمبر)</th>
+                            <th>Percentage (فیصد)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- R
